@@ -1,0 +1,69 @@
+name: Test Action
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Test empty output
+        id: empty
+        uses: ./
+        with:
+          command: "true"
+
+      - name: Test piped output
+        id: piped
+        uses: ./
+        with:
+          command: echo hi pipe | sed 's/hi/hello/'
+
+      - name: Test singe line output
+        id: single-line
+        uses: ./
+        with:
+          command: echo hello single
+
+      - name: Test multi line output
+        id: multi-line
+        uses: ./
+        with:
+          command: ls -lh
+
+      - name: Save summary
+        run: |
+          cat >> "${GITHUB_STEP_SUMMARY}" <<'EOF'
+          empty:
+          ```sh
+          ${{ steps.empty.outputs.output }}
+          ```
+
+          piped:
+          ```sh
+          ${{ steps.piped.outputs.output }}
+          ```
+
+          single-line:
+          ```sh
+          ${{ steps.single-line.outputs.output }}
+          ```
+
+          multi-line:
+          ```sh
+          ${{ steps.multi-line.outputs.output }}
+          ```
+          EOF
+
+      - name: Assert outputs
+        run: |
+          test '${{ steps.empty.outputs.output }}' == ''
+          test '${{ steps.piped.outputs.output }}' == 'hello pipe'
+          test '${{ steps.single-line.outputs.output }}' == 'hello single'
+          test '${{ steps.multi-line.outputs.output }}' == "$(ls -lh)"

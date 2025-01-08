@@ -1,0 +1,20 @@
+name: Capture command output
+description: Run the provided command and capture its output for later use in other steps.
+author: dawidd6
+branding:
+  icon: pocket
+  color: gray-dark
+inputs:
+  command:
+    description: Command to be executed.
+    required: false
+outputs:
+  output:
+    description: Executed command combined output (stdout+stderr).
+    value: ${{ steps.command.outputs.output }}
+runs:
+  using: composite
+  steps:
+    - run: "${GITHUB_ACTION_PATH}/main.sh '${{ inputs.command }}'"
+      id: command
+      shell: sh
